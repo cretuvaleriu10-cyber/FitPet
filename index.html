@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#030a1a">
+  <title>FITPET</title>
+  <link rel="icon" href="assets/icons/icon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+  <link rel="stylesheet" href="style.css">
+  <!-- Three.js se încarcă de pe CDN, doar când e nevoie (pets.js) -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+
+<!-- ÎNCĂRCARE -->
+<div id="boot" class="boot"><img src="assets/icons/icon.svg" alt="" width="84" height="84"><div class="spinner"></div></div>
+
+<!-- AUTENTIFICARE -->
+<section id="auth" class="auth hidden">
+  <div class="auth-box">
+    <img src="assets/icons/icon.svg" alt="" width="72" height="72">
+    <h1>FIT<span>PET</span></h1>
+    <p class="muted">Antrenează-te. Îngrijește-ți animalul.</p>
+
+    <form id="form-login" novalidate class="card">
+      <h2>Autentificare</h2>
+      <label>Email<input id="login-email" type="email" autocomplete="email" inputmode="email"></label>
+      <small class="err" data-for="login-email"></small>
+      <label>Parolă<input id="login-pass" type="password" autocomplete="current-password"></label>
+      <small class="err" data-for="login-pass"></small>
+      <small class="err" data-for="login-form"></small>
+      <button class="btn primary lg block" type="submit">Intră în cont</button>
+      <button class="btn ghost block" type="button" data-act="auth-switch" data-to="register">Nu ai cont? Înregistrează-te</button>
+    </form>
+
+    <form id="form-register" novalidate class="card hidden">
+      <h2>Creează cont</h2>
+      <label>Nume<input id="reg-name" type="text" autocomplete="nickname" maxlength="30"></label>
+      <small class="err" data-for="reg-name"></small>
+      <label>Email<input id="reg-email" type="email" autocomplete="email" inputmode="email"></label>
+      <small class="err" data-for="reg-email"></small>
+      <label>Parolă<input id="reg-pass" type="password" autocomplete="new-password"></label>
+      <small class="err" data-for="reg-pass"></small>
+      <label>Confirmă parola<input id="reg-pass2" type="password" autocomplete="new-password"></label>
+      <small class="err" data-for="reg-pass2"></small>
+      <div class="sec-title" style="margin:14px 0 8px">Alege-ți animalul</div>
+      <div class="pet-select" id="reg-pets"></div>
+      <small class="muted" style="line-height:1.5;margin-top:4px">Începe ca pui și crește dacă ai grijă de el. Dacă îl neglijezi (foame, epuizare), poate muri și îți pierzi seria de zile.</small>
+      <small class="err" data-for="reg-form"></small>
+      <button class="btn primary lg block" type="submit">Creează contul</button>
+      <button class="btn ghost block" type="button" data-act="auth-switch" data-to="login">Ai deja cont? Autentifică-te</button>
+    </form>
+
+    <p class="demo-note">⚠ Versiune demonstrativă: contul este salvat doar pe acest telefon (LocalStorage), <b>nu</b> este autentificare securizată pe server. Nu folosi o parolă reală. Pregătit pentru Firebase / Supabase.</p>
+  </div>
+</section>
+
+<!-- APLICAȚIA -->
+<div id="app" class="hidden">
+  <header class="topbar">
+    <div class="logo">FIT<span>PET</span></div>
+    <div class="top-chips">
+      <span class="chip" id="top-level">Nv. 1</span>
+      <span class="chip coin" id="top-coins">0</span>
+    </div>
+  </header>
+
+  <main id="main">
+    <section id="tab-home" class="tab">
+      <div class="card pet-card">
+        <div id="home-stage" class="stage-holder"></div>
+        <div id="home-head"></div>
+      </div>
+      <div id="home-body"></div>
+    </section>
+
+    <section id="tab-missions" class="tab"><div id="missions-body"></div></section>
+    <section id="tab-start" class="tab"><div id="start-body"></div></section>
+
+    <section id="tab-care" class="tab">
+      <div class="card pet-card">
+        <div id="care-stage" class="stage-holder"></div>
+        <div id="care-head"></div>
+      </div>
+      <div id="care-body"></div>
+    </section>
+
+    <section id="tab-profile" class="tab"><div id="profile-body"></div></section>
+  </main>
+
+  <nav id="nav" class="nav">
+    <button data-act="goto" data-tab="home" class="on"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/></svg><span>Acasă</span></button>
+    <button data-act="goto" data-tab="missions"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.3"/></svg><span>Misiuni</span></button>
+    <button data-act="goto" data-tab="start" class="center"><i><svg viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg></i><span>Start</span></button>
+    <button data-act="goto" data-tab="care"><svg viewBox="0 0 24 24"><path d="M12 21s-8-5.5-8-11a4.5 4.5 0 018-2.8A4.5 4.5 0 0120 10c0 5.5-8 11-8 11z"/></svg><span>Îngrijire</span></button>
+    <button data-act="goto" data-tab="profile"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg><span>Profil</span></button>
+  </nav>
+</div>
+
+<!-- ANTRENAMENT CU CAMERA -->
+<section id="workout" class="workout hidden">
+  <div class="w-video">
+    <video id="cam-video" playsinline muted autoplay></video>
+    <canvas id="cam-overlay"></canvas>
+
+    <div class="w-top">
+      <button class="icon-btn" id="w-close" aria-label="Închide">✕</button>
+      <div class="w-title" id="w-title"></div>
+      <div class="w-track"><i id="w-dot"></i><span id="w-tracktext">Caut corpul…</span></div>
+    </div>
+
+    <div class="w-hint" id="w-hint"></div>
+    <div class="w-countdown hidden" id="w-countdown"></div>
+
+    <div class="w-overlay" id="w-loading"><div class="spinner"></div><p id="w-loading-text">Se pregătește…</p></div>
+    <div class="w-overlay hidden" id="w-error">
+      <div class="warn-ic">!</div>
+      <p id="w-error-text"></p>
+      <button class="btn primary" id="w-retry">Încearcă din nou</button>
+      <button class="btn ghost" id="w-error-close">Înapoi</button>
+    </div>
+  </div>
+
+  <div class="w-panel">
+    <div class="w-stats">
+      <div><small id="w-count-label">Repetări</small><b id="w-count">0</b><em id="w-target"></em></div>
+      <div><small>Cronometru</small><b id="w-timer">00:00</b></div>
+    </div>
+    <div class="w-btns">
+      <button class="btn primary lg" id="w-start">Începe</button>
+      <button class="btn lg hidden" id="w-pause">Pauză</button>
+      <button class="btn danger lg hidden" id="w-stop">Oprește</button>
+      <button class="icon-btn" id="w-flip" aria-label="Schimbă camera">⟲</button>
+    </div>
+  </div>
+</section>
+
+<div id="modal" class="modal hidden"><div class="modal-card" id="modal-card"></div></div>
+<div id="toast" class="toast"></div>
+
+<script type="module" src="app.js"></script>
+<script>if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(function () {});</script>
+</body>
+</html>
